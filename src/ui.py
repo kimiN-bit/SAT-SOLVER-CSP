@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QCheckBox,
     QFileDialog, QLabel, QMessageBox, QTextEdit, QApplication
 )
+import time
 from csp import CSP
 from cnf import CNF
 
@@ -13,6 +14,7 @@ class UI(QWidget):
         self.select_file_button = None
         self.lcv_checkbox = None
         self.mcv_checkbox = None
+        self.mrv_checkbox = None
         self.quit_button = None
         self.selected_file = None
         self.setWindowTitle("SAT Solver using CSP")
@@ -31,6 +33,7 @@ class UI(QWidget):
 
         # Checkboxes for heuristics
         self.mcv_checkbox = QCheckBox("Use MCV (Most Constraining Variable)")
+        self.mrv_checkbox = QCheckBox("Use MRV (Minimum Remaining Value)")
         self.lcv_checkbox = QCheckBox("Use LCV (Least Constraining Value)")
 
         # File selection button
@@ -49,6 +52,7 @@ class UI(QWidget):
         # Layouts
         options_layout = QHBoxLayout()
         options_layout.addWidget(self.mcv_checkbox)
+        options_layout.addWidget(self.mrv_checkbox)
         options_layout.addWidget(self.lcv_checkbox)
 
         file_layout = QHBoxLayout()
@@ -80,9 +84,14 @@ class UI(QWidget):
 
     def handle_solve_button(self):
         use_mcv = self.mcv_checkbox.isChecked()
+        use_mrv = self.mrv_checkbox.isChecked()
         use_lcv = self.lcv_checkbox.isChecked()
         file_path = self.selected_file
-        self.solve_cnf_csp(use_mcv, use_lcv, file_path)
+        if use_mrv and use_mcv:
+            QMessageBox.warning(
+                self, "Error", "MRV and MCV cannot be used synchronously.")
+        else:
+            self.solve_cnf_csp(use_mcv, use_mrv, use_lcv, file_path)
 
     def read_test_case(self, filename):
         hard_clauses = []
@@ -124,7 +133,7 @@ class UI(QWidget):
                 return (None, None, None)
         return (variables, hard_clauses, soft_clauses)
 
-    def solve_cnf_csp(self, use_mcv, use_lcv, file_path):
+    def solve_cnf_csp(self, use_mcv, use_mrv, use_lcv, file_path):
         if file_path:
             variables, hard_clauses, soft_clauses = self.read_test_case(
                 file_path)
@@ -132,8 +141,10 @@ class UI(QWidget):
                 QMessageBox.warning(self, "Error", "Wrong format !")
             else:
                 cnf = CNF(variables, hard_clauses, soft_clauses)
-                csp = CSP(cnf, use_mcv, use_lcv)
+                csp = CSP(cnf, use_mcv, use_mrv, use_lcv)
+                start_time = time.time()
                 result, answer = csp.solve()
+                end_time = time.time()
 
                 print(result)
                 if result:
@@ -142,7 +153,7 @@ class UI(QWidget):
                     sorted_result = "\n".join(f"{var} = {value}" for var, value in sorted(
                         result.items(), key=lambda x: int(x[0][1:])))
                     formatted_result = f"Maximum weight:\n{
-                        answer}\n\nMCV: {use_mcv}\nLCV: {use_lcv}"
+                        answer}\nExecution time: {(end_time - start_time):.4f}\n\nMCV: {use_mcv}\nMRV: {use_mrv}\nLCV: {use_lcv}"
                 else:
                     formatted_result = "No solution found."
 

@@ -2,17 +2,19 @@ from cnf import CNF
 
 
 class CSP:
-    def __init__(self, cnf: CNF, use_mcv=True, use_lcv=True):
+    def __init__(self, cnf: CNF, use_mcv=True, use_mrv=True, use_lcv=True):
         """
         Initializes a Constraint Satisfaction Problem (CSP) solver.
 
         Args:
             cnf (CNF): The Conjunctive Normal Form representation of the problem.
             use_mcv (bool): Whether to use Most Constraining Variable (MCV) or not. Defaults to True.
+            use_mrv (bool): Whether to use Minimum Remaining Value (MRV) or not. Defaults to True.
             use_lcv (bool): Whether to use Least Constraining Value (LCV) or not. Defaults to True.
         """
         self.cnf = cnf
         self.use_mcv = use_mcv
+        self.use_mrv = use_mrv
         self.use_lcv = use_lcv
         self.degree_variables = {}
         self.variables = {}
@@ -105,6 +107,9 @@ class CSP:
             tuple: A tuple containing the solution (a dictionary mapping variables to their assigned values)
                    and the best weight (the minimum weight of all possible solutions).
         """
+
+    def minimum_remaining_value(self):
+        """ Selects the variable that appears in the fewest unsatisfied clauses. """
 
     def most_constraining_variable(self, unassigned_variables):
         """
