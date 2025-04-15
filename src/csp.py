@@ -109,7 +109,9 @@ class CSP:
         """
 
     def minimum_remaining_value(self):
-        """ Selects the variable that appears in the fewest unsatisfied clauses. """
+        """
+            Returns the variable with the smallest domain size and a value that satisfies the given constraints.
+        """
 
     def most_constraining_variable(self, unassigned_variables):
         """
